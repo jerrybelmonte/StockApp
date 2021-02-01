@@ -6,48 +6,50 @@ using System.Threading;
 
 namespace StockLibrary
 {
-    public class StockBroker
+    public class StockBroker // SUBSCRIBER
     {
         public string BrokerName { get; set; }
 
         public List<Stock> stocks = new List<Stock>();
 
         public static ReaderWriterLockSlim myLock = new ReaderWriterLockSlim();
-        readonly string docPath = @"C:\Users\gbelm\source\repos\StockApplication\Lab3_output.txt";
-
+        readonly string docPath = @"C:\Users\keira\RiderProjects\StockApp\output.text"; //@"C:\Users\gbelm\source\repos\StockApplication\Lab3_output.txt";
         public string titles = "Broker".PadRight(10) + "Stock".PadRight(15)
-            + "Value".PadRight(10) + "Changes".PadRight(10) + "Date and Time";
-
-        /// <summary>
-        ///     The stockbroker object
-        /// </summary>
-        /// <param name="brokerName">The stockbroker's name</param>
+                                                     + "Value".PadRight(10) + "Changes".PadRight(10) + "Date and Time";
+        
         public StockBroker(string brokerName)
         {
             BrokerName = brokerName;
         }
-
-        /// <summary>
-        ///     Adds stock objects to the stock list
-        /// </summary>
-        /// <param name="stock">Stock object</param>
+        
         public void AddStock(Stock stock)
         {
-            stocks.Add(___);
-            stock.StockEvent += ___;
+            stocks.Add(stock);
+            
+            // registers StockBroker as a subscriber to the event, "StockValueChanged"
+            // to be notified whenever the value of the stock being added is changed.
+            // set this Stock's EventHandler delegate to this StockBroker's EventHandler
+            stock.StockValueChanged += stock_StockValueChanged;
+            // publisher.EventInterestedIn += subscriber's EventHandler
         }
 
-        /// <summary>
-        ///     The eventhandler that raises the event of a change
-        /// </summary>
-        /// <param name="sender">The sender that indicated a change</param>
-        /// <param name="e">Event arguments</param>
-        void EventHandler(Object sender, EventArgs e)
+        // Event Handler
+        void stock_StockValueChanged(Object sender, StockNotification sn) // REVIEW (The "Notify" Method?), (EventArgs e -> StockNotification sn?)
         {
             try
             {
-                Stock newStock = (Stock)sender;
+                Stock newStock = (Stock) sender;
                 string statement;
+
+                // (Output the stock's name, value, numChanges if it's value is out-of-range.)
+                Console.WriteLine(sn.StockName + ": " +
+                                  sn.CurrentValue + ": " +
+                                  sn.NumChanges);
+            }
+            catch (Exception ex)
+            {
+                // TODO
+                Console.WriteLine("StockValueChanged: FALSE");
             }
         }
     }
