@@ -12,10 +12,15 @@ namespace StockLibrary
 
         public List<Stock> stocks = new List<Stock>();
 
+        // Represents a lock that is used to manage access to a resource, allows one thread to be
+        // in write mode with exclusive ownership of the lock.
         public static ReaderWriterLockSlim myLock = new ReaderWriterLockSlim();
-        readonly string docPath = @"C:\Users\keira\RiderProjects\StockApp\output.text"; //@"C:\Users\gbelm\source\repos\StockApplication\Lab3_output.txt";
-        public string titles = "Broker".PadRight(10) + "Stock".PadRight(15)
-                                                     + "Value".PadRight(10) + "Changes".PadRight(10) + "Date and Time";
+        readonly string docPath = @"C:\Users\<some path>\output.txt";
+        public string titles = "Broker".PadRight(10) 
+                             + "Stock".PadRight(15)
+                             + "Value".PadRight(10) 
+                             + "Changes".PadRight(10) 
+                             + "Date and Time";
         
         public StockBroker(string brokerName)
         {
@@ -36,20 +41,37 @@ namespace StockLibrary
         // Event Handler
         void stock_StockValueChanged(Object sender, StockNotification sn) // REVIEW (The "Notify" Method?), (EventArgs e -> StockNotification sn?)
         {
+            myLock.EnterWriteLock(); // The EventerWriteLock method is used to enter the lock in write mode.
+            // When a thread is in write mode, no other thread can enter the lock in any mode.
             try
             {
                 Stock newStock = (Stock) sender;
-                string statement;
+                string statement = BrokerName.PadRight(10);
+                statement += sn.StockName.PadRight(15);
+                statement += sn.CurrentValue.ToString().PadRight(10);
+                statement += sn.NumChanges.ToString().PadRight(10);
+                statement += DateTime.Now.ToString();
 
-                // (Output the stock's name, value, numChanges if it's value is out-of-range.)
-                Console.WriteLine(sn.StockName + ": " +
-                                  sn.CurrentValue + ": " +
-                                  sn.NumChanges);
+                // Create the file to write to with the titles if it does not exist yet.
+                if (!File.Exists(docPath))
+                {
+                    using (StreamWriter sw = File.CreateText(docPath))
+                    {
+                        sw.WriteLine(titles);
+                        Console.WriteLine(titles);
+                    }
+                }
+
+                // Writes to a text file the statement message received from the Publisher.
+                using (StreamWriter outputFile = new StreamWriter(docPath, true))
+                {
+                    outputFile.WriteLine(statement);
+                    Console.WriteLine(statement);
+                }
             }
-            catch (Exception ex)
+            finally
             {
-                // TODO
-                Console.WriteLine("StockValueChanged: FALSE");
+                myLock.ExitWriteLock();
             }
         }
     }
