@@ -11,8 +11,6 @@ namespace StockLibrary
         public string BrokerName { get; set; }
 
         public List<Stock> stocks = new List<Stock>();
-
-        public static ReaderWriterLockSlim myLock = new ReaderWriterLockSlim();
         
         private static bool outputFileCreated = false;
         static readonly string docPath = Directory.GetCurrentDirectory() + @"\..\..\..\..\output.txt";
@@ -30,8 +28,6 @@ namespace StockLibrary
 
         private void CheckOutputFileCreated()
         {
-            myLock.EnterWriteLock();
-
             if (!outputFileCreated)
             {
                 using (var writer = File.CreateText(docPath))
@@ -41,8 +37,6 @@ namespace StockLibrary
                 }
                 outputFileCreated = true;
             }
-
-            myLock.ExitWriteLock();
         }
 
         /// <summary>
@@ -61,45 +55,10 @@ namespace StockLibrary
                     {
                         await writer.WriteLineAsync(statement);
                     }
-                }
-                catch (Exception e)
-                {
-                    //Console.WriteLine(e.Message);
-                }
-                finally
-                {
                     Console.WriteLine(statement);
                 }
+                catch (Exception) { }
             };
-        }
-
-        /// <summary>
-        ///     The eventhandler that raises the event of a change
-        /// </summary>
-        /// <param name="sender">The sender that indicated a change</param>
-        /// <param name="sn">The encapsulated stock notification event</param>
-        void stock_StockValueChanged(Object sender, StockNotification sn)
-        {
-            myLock.EnterWriteLock();
-
-            try
-            {
-                string statement = BrokerName.PadRight(10) + sn.ToString();
-
-                using (var writer = File.AppendText(docPath))
-                {
-                    writer.WriteLine(statement);
-                    Console.WriteLine(statement);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            finally
-            {
-                myLock.ExitWriteLock();
-            }
         }
     }
 }
