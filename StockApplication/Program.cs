@@ -7,12 +7,10 @@ namespace StockApplication
     {
         static void Main(string[] args)
         {
-            Stock stock1 = new Stock("Technology", 160, 5, 15); // Activate(): (.5 sec * 25 times) = 12.5 seconds
-            Stock stock2 = new Stock("Retail", 30, 2, 6); // 12.5 seconds
-            Stock stock3 = new Stock("Banking", 90, 4, 10); // 12.5 seconds
-            Stock stock4 = new Stock("Commodity", 500, 20, 50); // 12.5 seconds
-            
-            // After 50 seconds...
+            Stock stock1 = new Stock("Technology", 160, 5, 15);
+            Stock stock2 = new Stock("Retail", 30, 2, 6);
+            Stock stock3 = new Stock("Banking", 90, 4, 10);
+            Stock stock4 = new Stock("Commodity", 500, 20, 50);
 
             StockBroker b1 = new StockBroker("Broker 1");
             b1.AddStock(stock1);
