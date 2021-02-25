@@ -13,9 +13,9 @@ namespace StockLibrary
         public List<Stock> stocks = new List<Stock>();
 
         public static ReaderWriterLockSlim myLock = new ReaderWriterLockSlim();
-
+        
         private static bool outputFileCreated = false;
-        readonly string docPath = Directory.GetCurrentDirectory() + @"\..\..\..\..\output.txt";
+        static readonly string docPath = Directory.GetCurrentDirectory() + @"\..\..\..\..\output.txt";
         public string titles = "Broker".PadRight(10) + "Stock".PadRight(15) + "Value".PadRight(10) + "Changes".PadRight(10) + "Date and Time";
 
         /// <summary>
@@ -52,7 +52,25 @@ namespace StockLibrary
         public void AddStock(Stock stock)
         {
             stocks.Add(stock);
-            stock.StockValueChanged += stock_StockValueChanged;
+            stock.StockValueChanged += async (sender, args) => 
+            {
+                string statement = BrokerName.PadRight(10) + args.ToString();
+                try
+                {
+                    using (StreamWriter writer = File.AppendText(docPath))
+                    {
+                        await writer.WriteLineAsync(statement);
+                    }
+                }
+                catch (Exception e)
+                {
+                    //Console.WriteLine(e.Message);
+                }
+                finally
+                {
+                    Console.WriteLine(statement);
+                }
+            };
         }
 
         /// <summary>
