@@ -11,10 +11,12 @@ namespace StockLibrary
         public string BrokerName { get; set; }
 
         public List<Stock> stocks = new List<Stock>();
+
+        private static SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         
         private static bool outputFileCreated = false;
         static readonly string docPath = Directory.GetCurrentDirectory() + @"\..\..\..\..\output.txt";
-        public string titles = "Broker".PadRight(10) + "Stock".PadRight(15) + "Value".PadRight(10) + "Changes".PadRight(10) + "Date and Time";
+        public string titles = $"{"Broker",-10}{"Stock",-15}{"Value",-10}{"Changes",-10}Date and Time";
 
         /// <summary>
         ///     The stockbroker object
@@ -30,11 +32,8 @@ namespace StockLibrary
         {
             if (!outputFileCreated)
             {
-                using (var writer = File.CreateText(docPath))
-                {
-                    writer.WriteLine(titles);
-                    Console.WriteLine(titles);
-                }
+                File.WriteAllText(docPath, $"{titles}{Environment.NewLine}");
+                Console.WriteLine(titles);
                 outputFileCreated = true;
             }
         }
@@ -48,17 +47,27 @@ namespace StockLibrary
             stocks.Add(stock);
             stock.StockValueChanged += async (sender, args) => 
             {
-                string statement = BrokerName.PadRight(10) + args.ToString();
-                try
-                {
-                    using (StreamWriter writer = File.AppendText(docPath))
-                    {
-                        await writer.WriteLineAsync(statement);
-                    }
-                    Console.WriteLine(statement);
-                }
-                catch (Exception) { }
+                string statement = $"{BrokerName,-10}{args}";
+                await WriteStatementAsync(statement);
             };
+        }
+
+        async Task WriteStatementAsync(string text)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                using (FileStream stream = new FileStream(docPath, FileMode.Append, FileAccess.Write, FileShare.None, 4096, true))
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    await writer.WriteLineAsync(text);
+                    Console.WriteLine(text);
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
     }
 }
