@@ -1,5 +1,5 @@
 # Stock Price Change Application
-Software Development with Frameworks
+C# stock application that mocks stock price changes and outputs the stock price changes to a text file.
 
 ## Table of Contents
 - [Objective](#objective)
